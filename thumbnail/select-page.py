@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 def main():
-    # get input file path
+    # get args
     parser = argparse.ArgumentParser(description="select page as thumbnail")
     parser.add_argument("-i", "--input", required=True, help="input file")
     parser.add_argument(

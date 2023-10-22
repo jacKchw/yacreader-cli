@@ -10,7 +10,7 @@ import zipfile
 
 
 def main():
-    # get input file path
+    # get args
     parser = argparse.ArgumentParser(description="crop images left or right")
     parser.add_argument("-i", "--input", required=True, help="input file")
     parser.add_argument(

@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 def main():
-    # get input file path
+    # get args
     parser = argparse.ArgumentParser(description="crop any image")
     parser.add_argument("-i", "--input", required=True, help="input file")
     parser.add_argument("-l", "--left", type=int, required=True, help="left position")
@@ -19,7 +19,7 @@ def main():
         "-d",
         "--display",
         action="store_true",
-        help="display preview and ask for confirm",
+        help="show preview and ask for confirm",
     )
     args = parser.parse_args()
     inputFilePath = Path(args.input)
@@ -29,10 +29,13 @@ def main():
 
     with Image(filename=inputFilePath) as img:
         (w, h) = img.size
+
         if not right:
+            # use default ratio
             right = round(0.7 * h + left)
 
         if args.display:
+            # show preview
             print("left: ", left)
             print("right: ", right)
             with Drawing() as draw:
@@ -49,6 +52,7 @@ def main():
             if confirm == "N" or confirm == "n":
                 exit()
 
+        # crop image
         with img.clone() as i:
             i.crop(left=left, top=0, right=right)
             i.save(filename=inputFilePath)
