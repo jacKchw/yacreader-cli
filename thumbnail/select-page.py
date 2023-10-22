@@ -46,7 +46,7 @@ def main():
                 display(img)
             confirm = input("Confirm? [Y]/N")
             if confirm == "N" or confirm == "n":
-                exit()
+                return
 
         # zip file
         with zipfile.ZipFile(inputFilePath, "w") as zf:

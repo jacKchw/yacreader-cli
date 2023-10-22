@@ -50,7 +50,7 @@ def main():
 
             confirm = input("Confirm? [Y]/N")
             if confirm == "N" or confirm == "n":
-                exit()
+                return
 
         # crop image
         with img.clone() as i:
