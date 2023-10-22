@@ -40,6 +40,8 @@ def main():
         comicInfoId = comic[0]
         fileName = Path(comic[1])
         title = fileName.stem
+        if title == "_":
+            continue
         cur.execute(
             "UPDATE comic_info SET title = ? WHERE id = ?;", (title, comicInfoId)
         )
