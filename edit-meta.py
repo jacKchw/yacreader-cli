@@ -14,6 +14,14 @@ def main():
     con = sqlite3.connect(args.input)
     cur = con.cursor()
 
+
+    # remove genere
+    cur.execute(
+        "UPDATE comic_info SET genere = '' WHERE genere <> ''" 
+    )
+
+    con.commit()
+
     # get creator or series from path
     res = cur.execute("SELECT * FROM comic;")
     comics = res.fetchall()
@@ -29,7 +37,10 @@ def main():
             query = "UPDATE comic_info SET writer = ? WHERE id = ?;"
         if dir == "series":
             query = "UPDATE comic_info SET series = ? WHERE id = ?;"
-        if dir == "tags" or query == "":
+        if dir == "tags":
+            query = "UPDATE comic_info SET genere = genere || ? WHERE id = ?;"
+            value = value + " / "
+        if  query == "":
             continue
 
         cur.execute(query, (value, comicInfoId))
@@ -44,8 +55,9 @@ def main():
         if title == "_":
             continue
         cur.execute(
-            "UPDATE comic_info SET title = ? WHERE id = ?;", (title, comicInfoId)
+            "UPDATE comic_info SET title = ?  WHERE id = ?;", (title, comicInfoId)
         )
+
 
     # change type to manga
     cur.execute("UPDATE comic_info SET type = 1 WHERE type <> 1;")
