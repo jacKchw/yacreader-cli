@@ -8,7 +8,10 @@ def main():
     # get input file path
     parser = argparse.ArgumentParser(description="update library metadata")
     parser.add_argument("-i", "--input", required=True, help="path of library.ydb")
+    parser.add_argument("-v", "--verbose", required=False, help="explain what is being done", action= argparse.BooleanOptionalAction)
     args = parser.parse_args()
+    isVerbose = args.verbose == True
+
 
     # establish connection
     con = sqlite3.connect(args.input)
@@ -54,9 +57,14 @@ def main():
         title = fileName.stem
         if title == "_":
             continue
-        cur.execute(
-            "UPDATE comic_info SET title = ?  WHERE id = ?;", (title, comicInfoId)
-        )
+        if title == fileName:
+            continue
+        else:
+            cur.execute(
+                "UPDATE comic_info SET title = ?  WHERE id = ?;", (title, comicInfoId)
+            )
+            if isVerbose:
+                print("Updated title", title)
 
 
     # change type to manga
