@@ -15,56 +15,71 @@ def main():
 
     # establish connection
     con = sqlite3.connect(args.input)
+    con.row_factory = sqlite3.Row
     cur = con.cursor()
 
 
-    # remove genere
-    cur.execute(
-        "UPDATE comic_info SET genere = '' WHERE genere <> ''" 
-    )
+    res = cur.execute("SELECT * FROM comic_info;")
+    comicInfos = res.fetchall()
+    for comicInfo in comicInfos:
+        comicInfoId = comicInfo["id"]
+    
+        # get creator, series and tags from path
+        res = cur.execute("SELECT * FROM comic WHERE comicInfoId = ?;", (comicInfoId,))
+        comics = res.fetchall()
 
-    con.commit()
 
-    # get creator or series from path
-    res = cur.execute("SELECT * FROM comic;")
-    comics = res.fetchall()
-    for comic in comics:
-        comicInfoId = comic[2]
-        filePath = Path(comic[4])
-        items = filePath.parts
-        dir = items[-3]
-        value = items[-2]
+        title = ""
+        infoColumn = {
+        "creator" : "writer",
+        "series" : "series",
+        "tags" : "synopsis"
+        }
+        infoValue = {
+        "creator" : [],
+        "series" : [],
+        "tags" : []
+        }
 
-        query = ""
-        if dir == "creator":
-            query = "UPDATE comic_info SET writer = ? WHERE id = ?;"
-        if dir == "series":
-            query = "UPDATE comic_info SET series = ? WHERE id = ?;"
-        if dir == "tags":
-            query = "UPDATE comic_info SET genere = genere || ? WHERE id = ?;"
-            value = value + " / "
-        if  query == "":
-            continue
+        for comic in comics:
+            if comic["path"] is None:
+                continue
+            filePath = Path(comic["path"])
+            if filePath.stem != "_":
+                title = filePath.stem
 
-        cur.execute(query, (value, comicInfoId))
+            items = filePath.parts
+            dir = items[-3]
+            value = items[-2]
 
-    # get title
-    res = cur.execute("SELECT DISTINCT comicInfoId, fileName FROM comic;")
-    comics = res.fetchall()
-    for comic in comics:
-        comicInfoId = comic[0]
-        fileName = Path(comic[1])
-        title = fileName.stem
-        if title == "_":
-            continue
-        if title == fileName:
-            continue
-        else:
+            if dir not in infoValue.keys():
+                continue
+
+            infoValue[dir].append(value)
+
+
+        # get title
+        
+        if title != "" and title != comicInfo["title"]:
             cur.execute(
                 "UPDATE comic_info SET title = ?  WHERE id = ?;", (title, comicInfoId)
             )
             if isVerbose:
-                print("Updated title", title)
+                print("Updated title:", title)
+
+        
+        # update creator, series and tags in comic_info
+        for key in infoValue:
+            infos = infoValue[key]
+            columnName =infoColumn[key]
+
+            if len(infos) >0:
+                infosStr = " / ".join(infos)
+                if comicInfo[columnName] == infosStr:
+                    continue
+                cur.execute("UPDATE comic_info SET %s = ? WHERE id = ?;"%columnName,( infosStr, comicInfoId))
+                if isVerbose:
+                    print("Updated ",columnName +":", title, '"'+infosStr+'"')
 
 
     # change type to manga
